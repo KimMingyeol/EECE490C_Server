@@ -31,7 +31,7 @@ def fetchPosts(request):
         ###
         # For validation purpose, pass data to serializer
         get_posts_serializer_data = {"nickname": nickname, "posts": posts_serializer_data}
-        get_posts_serializer = GetPostsSerializer(data=get_posts_serializer_data)
+        get_posts_serializer = FetchPostsSerializer(data=get_posts_serializer_data)
 
         if not get_posts_serializer.is_valid(raise_exception=False):
             return Response(get_posts_serializer.data, 400)

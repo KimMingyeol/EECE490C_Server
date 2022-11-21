@@ -13,7 +13,7 @@ class PostSerializer(serializers.Serializer):
     captured_minute = serializers.IntegerField()
     caption = serializers.CharField(max_length=50)
 
-class GetPostsSerializer(serializers.Serializer):
+class FetchPostsSerializer(serializers.Serializer):
     nickname = serializers.CharField(max_length=30)
     posts = PostSerializer(many=True)
 
