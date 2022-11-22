@@ -22,10 +22,10 @@ def fetchPosts(request):
         posts_serializer_data = []
 
         for post in posts:
-            heart_users_nickname = []
+            heart_users = []
             for heart_user in post.heart_users.all():
-                heart_users_nickname.append(heart_user.nickname)
-            posts_serializer_data.append({"id": post.id, "heart_users_nickname": heart_users_nickname, "photo": post.photo, "captured_year": post.datetime.year, "captured_month": post.datetime.month, "captured_day": post.datetime.day, "captured_hour": post.datetime.hour, "captured_minute": post.datetime.minute, "caption": post.caption})
+                heart_users.append({"nickname": heart_user.nickname})
+            posts_serializer_data.append({"id": post.id, "heart_users": heart_users, "photo": post.photo, "captured_year": post.datetime.year, "captured_month": post.datetime.month, "captured_day": post.datetime.day, "captured_hour": post.datetime.hour, "captured_minute": post.datetime.minute, "caption": post.caption})
         # TODO: includes friend's photos
 
         ###

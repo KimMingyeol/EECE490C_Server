@@ -7,11 +7,11 @@ from django.contrib.auth.models import User
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     nickname = models.CharField(max_length=30) # must be unique
-    friends = models.ManyToManyField("Profile")
+    friends = models.ManyToManyField("Profile", blank=True)
 
 class Post(models.Model):
     uploader = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    heart_users = models.ManyToManyField(Profile, related_name="heart_users_set")
+    heart_users = models.ManyToManyField(Profile, blank=True, related_name="heart_users_set")
     photo = models.ImageField(upload_to='test/%Y/%m/%d')
     datetime = models.DateTimeField()
     caption = models.CharField(max_length=50, blank=True)

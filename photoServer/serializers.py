@@ -2,9 +2,12 @@ from rest_framework import serializers
 from .models import *
 from datetime import datetime
 
+class UserSerializer(serializers.Serializer):
+    nickname = serializers.CharField(max_length=30)
+
 class PostSerializer(serializers.Serializer):
     id = serializers.IntegerField() # set to -1 when uploading
-    heart_users_nickname = serializers.CharField(max_length=30, many=True)
+    heart_users = UserSerializer(many=True)
     photo = serializers.ImageField()
     captured_year = serializers.IntegerField()
     captured_month = serializers.IntegerField()
