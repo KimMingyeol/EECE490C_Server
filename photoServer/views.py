@@ -4,21 +4,22 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-# Create your views here.
 # Code Style: Double quotation used for fields and keys
-# Code Style: Single quotation used for states
+# Code Style: Single quotation used for states and URLs
 
 # TODO: IsAuthenticated
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def fetchPosts(request):
     if request.method == 'GET':
-        nickname = request.query_params.get("nickname")
-        uploader = Profile.objects.get(nickname=nickname)
-        if uploader is None:
-            return Response({"nickname": nickname, "posts": []}, 400)
+        username = request.query_params.get("username")
+        try:
+            uploader = User.objects.get(username=username) # try-catch necessary...?
+            uploader_profile = Profile.objects.get(user=uploader)
+        except Profile.DoesNotExist:
+            return Response({"username": username, "posts": []}, 400)
 
-        posts = Post.objects.filter(uploader=uploader)
+        posts = Post.objects.filter(uploader=uploader_profile)
         posts_serializer_data = []
 
         for post in posts:
@@ -30,7 +31,7 @@ def fetchPosts(request):
 
         ###
         # For validation purpose, pass data to serializer
-        get_posts_serializer_data = {"nickname": nickname, "posts": posts_serializer_data}
+        get_posts_serializer_data = {"username": username, "posts": posts_serializer_data}
         get_posts_serializer = FetchPostsSerializer(data=get_posts_serializer_data)
 
         if not get_posts_serializer.is_valid(raise_exception=False):
@@ -39,7 +40,7 @@ def fetchPosts(request):
 
 # TODO: IsAuthenticated
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def uploadPost(request):
     # Post uploaded from an Android user
     if request.method == 'POST':
@@ -52,7 +53,7 @@ def uploadPost(request):
 
 # TODO: IsAuthenticated
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def postHeart(request):
     if request.method == 'POST':
         post_heart_serializer = PostHeartSerializer(data=request.data)
@@ -61,3 +62,33 @@ def postHeart(request):
         
         post_heart_serializer.save()
         return Response(post_heart_serializer.data, 201)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def signUp(request):
+    if request.method == 'POST':
+        sign_up_serializer = SignUpSerializer(data=request.data)
+        
+        if not sign_up_serializer.is_valid(raise_exception=False):
+            return Response(sign_up_serializer.data, 400)
+        
+        try:
+            User.objects.get(username=sign_up_serializer.validated_data['username'])
+        except User.DoesNotExist:
+            sign_up_serializer.save()
+            return Response(sign_up_serializer.data, 201)
+        
+        return Response(sign_up_serializer.data, 409)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def logIn(request):
+    if request.method == 'POST':
+        log_in_serializer = LogInSerializer(data=request.data)
+        if not log_in_serializer.is_valid(raise_exception=False):
+            return Response(log_in_serializer.data, 400)
+        
+        if log_in_serializer.data['token'] == 'NOT FOUND':
+            return Response(log_in_serializer.data, 401)
+
+        return Response(log_in_serializer.data, 200)

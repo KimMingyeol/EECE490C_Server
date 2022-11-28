@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    nickname = models.CharField(max_length=30) # must be unique
+    nickname = models.CharField(max_length=30)
     friends = models.ManyToManyField("Profile", blank=True)
 
 class Post(models.Model):

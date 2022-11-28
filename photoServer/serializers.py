@@ -1,6 +1,9 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import *
 from datetime import datetime
+from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.models import update_last_login
 
 class UserSerializer(serializers.Serializer):
     nickname = serializers.CharField(max_length=30)
@@ -17,7 +20,7 @@ class PostSerializer(serializers.Serializer):
     caption = serializers.CharField(max_length=50)
 
 class FetchPostsSerializer(serializers.Serializer):
-    nickname = serializers.CharField(max_length=30)
+    username = serializers.CharField(max_length=30)
     posts = PostSerializer(many=True)
 
 class UploadPostSerializer(serializers.Serializer):
@@ -45,3 +48,41 @@ class PostHeartSerializer(serializers.Serializer):
                 target_post.heart_users.add(heart_user)
         
         return validated_data
+
+# User = get_user_model() # necessary?
+
+class SignUpSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=30)
+    password = serializers.CharField(max_length=30)
+    nickname = serializers.CharField(max_length=30) # allow only a unique nickname
+
+    def create(self, validated_data):
+        new_user = User.objects.create(username=validated_data['username'])
+        new_user.set_password(validated_data['password'])
+        new_user.save()
+        
+        Profile.objects.create(user=new_user, nickname=validated_data['nickname'])
+
+        return validated_data
+
+
+class LogInSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=30)
+    password = serializers.CharField(max_length=30)
+    token = serializers.CharField(max_length=255, read_only=True)
+
+    def validate(self, data):
+        username = data.get('username', None)
+        password = data.get('password', None)
+        login_user = authenticate(username=username, password=password)
+
+        if login_user is None:
+            return {'username': username, 'password': password, 'token': 'NOT FOUND'}
+        
+        try:
+            token = RefreshToken.for_user(login_user).access_token
+            update_last_login(None, login_user)
+        except User.DoesNotExist:
+            return {'username': username, 'password': password, 'token': 'NOT FOUND'}
+
+        return {'username': username, 'password': password, 'token': token}
