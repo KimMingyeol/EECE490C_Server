@@ -4,9 +4,11 @@ from .models import *
 from datetime import datetime
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import update_last_login
+from drf_extra_fields.fields import Base64ImageField
+
 
 class UserSerializer(serializers.Serializer):
-    nickname = serializers.CharField(max_length=30)
+    username = serializers.CharField(max_length=30)
 
 class PostSerializer(serializers.Serializer):
     id = serializers.IntegerField() # set to -1 when uploading
@@ -24,47 +26,45 @@ class FetchPostsSerializer(serializers.Serializer):
     posts = PostSerializer(many=True)
 
 class UploadPostSerializer(serializers.Serializer):
-    nickname = serializers.CharField(max_length=30)
-    post = PostSerializer()
+    username = serializers.CharField(max_length=30)
+    photo = Base64ImageField()
+    captured_year = serializers.IntegerField()
+    captured_month = serializers.IntegerField()
+    captured_day = serializers.IntegerField()
+    captured_hour = serializers.IntegerField()
+    captured_minute = serializers.IntegerField()
+    caption = serializers.CharField(max_length=50)
 
     def create(self, validated_data):
-        if validated_data["status"] == 'ACCEPT':
-            uploader = Profile.objects.get(nickname=validated_data["nickname"])
-            uploaded_post = validated_data["post"]
-            # Should I explicitly set heart_users?
-            Post.objects.create(uploader=uploader, photo=uploaded_post.photo, datetime=datetime(year=uploaded_post.captured_year, month=uploaded_post.captured_month, day=uploaded_post.captured_day, hour=uploaded_post.captured_hour, minute=uploaded_post.captured_minute), caption=uploaded_post.caption)
+        uploader = User.objects.get(username=validated_data["username"])
+        uploader_profile = Profile.objects.get(user=uploader)
+        uploaded_post = Post.objects.create(uploader=uploader_profile, photo=validated_data["photo"], datetime=datetime(year=validated_data["captured_year"], month=validated_data["captured_month"], day=validated_data["captured_day"], hour=validated_data["captured_hour"], minute=validated_data["captured_minute"]), caption=validated_data["caption"])
 
         return validated_data
 
 class PostHeartSerializer(serializers.Serializer):
-    nickname = serializers.CharField(max_length=30)
+    username = serializers.CharField(max_length=30)
     target_post_id = serializers.IntegerField()
 
     def create(self, validated_data):
-        if validated_data["status"] == 'ACCEPT':
-            heart_user = Profile.objects.get(nickname=validated_data["nickname"])
-            target_post = Post.objects.get(id=validated_data["id"])
-            if heart_user is not None and target_post is not None:
-                target_post.heart_users.add(heart_user)
+        heart_user = User.objects.get(username=validated_data["username"])
+        heart_user_profile = Profile.objects.get(user=heart_user)
+        target_post = Post.objects.get(id=validated_data["id"])
+        if heart_user_profile is not None and target_post is not None:
+            target_post.heart_users.add(heart_user_profile)
         
         return validated_data
-
-# User = get_user_model() # necessary?
 
 class SignUpSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=30)
     password = serializers.CharField(max_length=30)
-    nickname = serializers.CharField(max_length=30) # allow only a unique nickname
 
     def create(self, validated_data):
         new_user = User.objects.create(username=validated_data['username'])
         new_user.set_password(validated_data['password'])
         new_user.save()
-        
-        Profile.objects.create(user=new_user, nickname=validated_data['nickname'])
 
         return validated_data
-
 
 class LogInSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=30)
