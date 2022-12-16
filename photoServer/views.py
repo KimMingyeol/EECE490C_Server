@@ -4,9 +4,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-# Code Style: Double quotation used for fields and keys
-# Code Style: Single quotation used for states and URLs
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def fetchPosts(request):
@@ -22,13 +19,8 @@ def fetchPosts(request):
         posts_serializer_data = []
 
         for post in posts:
-            heart_users = []
-            for heart_user in post.heart_users.all():
-                heart_users.append({"username": heart_user.user.username})
-            posts_serializer_data.append({"id": post.id, "heart_users": heart_users, "photo": post.photo, "captured_year": post.datetime.year, "captured_month": post.datetime.month, "captured_day": post.datetime.day, "captured_hour": post.datetime.hour, "captured_minute": post.datetime.minute, "caption": post.caption})
-        # TODO: includes friend's photos
-        ###
-        # For validation purpose, pass data to serializer
+            posts_serializer_data.append({"id": post.id, "artist": post.artist, "photo": post.photo, "captured_year": post.datetime.year, "captured_month": post.datetime.month, "captured_day": post.datetime.day, "captured_hour": post.datetime.hour, "captured_minute": post.datetime.minute, "caption": post.caption})
+        
         get_posts_serializer_data = {"username": username, "posts": posts_serializer_data}
         get_posts_serializer = FetchPostsSerializer(data=get_posts_serializer_data)
 
@@ -41,24 +33,12 @@ def fetchPosts(request):
 def uploadPost(request):
     # Post uploaded from an Android user
     if request.method == 'POST':
-        request.data['caption'] = 'tmp'
         upload_post_serializer = UploadPostSerializer(data=request.data)
         if not upload_post_serializer.is_valid(raise_exception=False):
             return Response(upload_post_serializer.data, 400)
         
         upload_post_serializer.save()
         return Response(upload_post_serializer.data, 201)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def postHeart(request):
-    if request.method == 'POST':
-        post_heart_serializer = PostHeartSerializer(data=request.data)
-        if not post_heart_serializer.is_valid(raise_exception=False):
-            return Response(post_heart_serializer.data, 400)
-        
-        post_heart_serializer.save()
-        return Response(post_heart_serializer.data, 201)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

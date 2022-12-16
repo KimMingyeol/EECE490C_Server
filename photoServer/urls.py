@@ -5,7 +5,6 @@ from .views import *
 urlpatterns = format_suffix_patterns ([
     path('fetch/', fetchPosts),
     path('upload/', uploadPost),
-    path('heart/', postHeart),
     path('signup/', signUp),
     path('login/', logIn)
 ])

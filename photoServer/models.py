@@ -6,11 +6,10 @@ from django.contrib.auth.models import User
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    friends = models.ManyToManyField("Profile", blank=True)
 
 class Post(models.Model):
     uploader = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    heart_users = models.ManyToManyField(Profile, blank=True, null=True, related_name="heart_users_set")
+    artist = models.CharField(max_length=50, blank=True)
     photo = models.ImageField(upload_to='test/%Y/%m/%d')
     datetime = models.DateTimeField()
     caption = models.CharField(max_length=50, blank=True)
