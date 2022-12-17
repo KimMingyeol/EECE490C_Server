@@ -42,6 +42,22 @@ def uploadPost(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+def deletePost(request):
+    if request.method == 'POST':
+        post_id = request.data
+        if not isinstance(post_id, int):
+            return Response(-1, 400)
+        
+        try:
+            post_to_delete = Post.objects.get(id=request.data)
+        except Post.DoesNotExist:
+            return Response(-1, 400)
+        
+        post_to_delete.delete()
+        return Response(post_id, 200)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def signUp(request):
     if request.method == 'POST':
         sign_up_serializer = SignUpSerializer(data=request.data)
