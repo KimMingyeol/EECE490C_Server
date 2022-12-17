@@ -9,14 +9,15 @@ from drf_extra_fields.fields import Base64ImageField
 
 class PostSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    artist = serializers.CharField(max_length=50, allow_blank=True)
+    artist = serializers.CharField(max_length=100, allow_blank=True)
     photo = serializers.ImageField()
     captured_year = serializers.IntegerField()
     captured_month = serializers.IntegerField()
     captured_day = serializers.IntegerField()
     captured_hour = serializers.IntegerField()
     captured_minute = serializers.IntegerField()
-    caption = serializers.CharField(max_length=50, allow_blank=True)
+    captured_second = serializers.IntegerField()
+    caption = serializers.CharField(allow_blank=True)
 
 class FetchPostsSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=30)
@@ -24,19 +25,20 @@ class FetchPostsSerializer(serializers.Serializer):
 
 class UploadPostSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=30)
-    artist = serializers.CharField(max_length=50, allow_blank=True)
+    artist = serializers.CharField(max_length=100, allow_blank=True)
     photo = Base64ImageField()
     captured_year = serializers.IntegerField()
     captured_month = serializers.IntegerField()
     captured_day = serializers.IntegerField()
     captured_hour = serializers.IntegerField()
     captured_minute = serializers.IntegerField()
-    caption = serializers.CharField(max_length=50, allow_blank=True)
+    captured_second = serializers.IntegerField()
+    caption = serializers.CharField(allow_blank=True)
 
     def create(self, validated_data):
         uploader = User.objects.get(username=validated_data["username"])
         uploader_profile = Profile.objects.get(user=uploader)
-        Post.objects.create(uploader=uploader_profile, artist=validated_data["artist"], photo=validated_data["photo"], datetime=datetime(year=validated_data["captured_year"], month=validated_data["captured_month"], day=validated_data["captured_day"], hour=validated_data["captured_hour"], minute=validated_data["captured_minute"]), caption=validated_data["caption"])
+        Post.objects.create(uploader=uploader_profile, artist=validated_data["artist"], photo=validated_data["photo"], datetime=datetime(year=validated_data["captured_year"], month=validated_data["captured_month"], day=validated_data["captured_day"], hour=validated_data["captured_hour"], minute=validated_data["captured_minute"], second=validated_data["captured_second"]), caption=validated_data["caption"])
 
         return validated_data
 

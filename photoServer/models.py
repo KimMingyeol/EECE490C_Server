@@ -9,7 +9,7 @@ class Profile(models.Model):
 
 class Post(models.Model):
     uploader = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    artist = models.CharField(max_length=50, blank=True)
+    artist = models.CharField(max_length=100, blank=True)
     photo = models.ImageField(upload_to='test/%Y/%m/%d')
     datetime = models.DateTimeField()
-    caption = models.CharField(max_length=50, blank=True)
+    caption = models.TextField(blank=True)

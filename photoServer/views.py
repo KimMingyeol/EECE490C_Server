@@ -19,7 +19,7 @@ def fetchPosts(request):
         posts_serializer_data = []
 
         for post in posts:
-            posts_serializer_data.append({"id": post.id, "artist": post.artist, "photo": post.photo, "captured_year": post.datetime.year, "captured_month": post.datetime.month, "captured_day": post.datetime.day, "captured_hour": post.datetime.hour, "captured_minute": post.datetime.minute, "caption": post.caption})
+            posts_serializer_data.append({"id": post.id, "artist": post.artist, "photo": post.photo, "captured_year": post.datetime.year, "captured_month": post.datetime.month, "captured_day": post.datetime.day, "captured_hour": post.datetime.hour, "captured_minute": post.datetime.minute, "captured_second": post.datetime.second, "caption": post.caption})
         
         get_posts_serializer_data = {"username": username, "posts": posts_serializer_data}
         get_posts_serializer = FetchPostsSerializer(data=get_posts_serializer_data)
