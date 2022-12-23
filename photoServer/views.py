@@ -66,11 +66,6 @@ def deletePost(request):
         post_uploader_profile.updated_time = timezone.now()
         post_uploader_profile.save()
 
-        # comment out when you use an separate image storage server
-        # print("Will remove", post_to_delete.photo.path, os.path.isfile(post_to_delete.photo.path))
-        # if os.path.isfile(post_to_delete.photo.path):
-        #     os.remove(post_to_delete.photo.path)
-        
         post_to_delete.delete()
         return Response(post_id, 200)
 
@@ -94,6 +89,7 @@ def signUp(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def logIn(request):
+    print("Request arrived")
     if request.method == 'POST':
         log_in_serializer = LogInSerializer(data=request.data)
         if not log_in_serializer.is_valid(raise_exception=False):
