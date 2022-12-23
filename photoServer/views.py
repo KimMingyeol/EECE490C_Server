@@ -3,17 +3,23 @@ from .serializers import *
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from django.utils import timezone
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def fetchPosts(request):
     if request.method == 'GET':
         username = request.query_params.get("username")
+        from_which = request.query_params.get("from_which")
         try:
-            uploader = User.objects.get(username=username) # try-catch necessary...?
+            uploader = User.objects.get(username=username)
             uploader_profile = Profile.objects.get(user=uploader)
         except Profile.DoesNotExist:
             return Response({"username": username, "posts": []}, 400)
+        
+        if from_which == "unity":
+            uploader_profile.fetched_time = timezone.now()
+            uploader_profile.save()
 
         posts = Post.objects.filter(uploader=uploader_profile)
         posts_serializer_data = []
@@ -26,6 +32,9 @@ def fetchPosts(request):
 
         if not get_posts_serializer.is_valid(raise_exception=False):
             return Response(get_posts_serializer.data, 400)
+        
+        print(uploader_profile.fetched_time)
+        print(timezone.now())
         return Response(get_posts_serializer.data, 200)
 
 @api_view(['POST'])
@@ -53,6 +62,15 @@ def deletePost(request):
         except Post.DoesNotExist:
             return Response(-1, 400)
         
+        post_uploader_profile = post_to_delete.uploader
+        post_uploader_profile.updated_time = timezone.now()
+        post_uploader_profile.save()
+
+        # comment out when you use an separate image storage server
+        # print("Will remove", post_to_delete.photo.path, os.path.isfile(post_to_delete.photo.path))
+        # if os.path.isfile(post_to_delete.photo.path):
+        #     os.remove(post_to_delete.photo.path)
+        
         post_to_delete.delete()
         return Response(post_id, 200)
 
@@ -66,7 +84,7 @@ def signUp(request):
             return Response(sign_up_serializer.data, 400)
         
         try:
-            User.objects.get(username=sign_up_serializer.validated_data['username'])
+            sign_up_user = User.objects.get(username=sign_up_serializer.validated_data['username'])
         except User.DoesNotExist:
             sign_up_serializer.save()
             return Response(sign_up_serializer.data, 201)
@@ -85,3 +103,20 @@ def logIn(request):
             return Response(log_in_serializer.data, 401)
 
         return Response(log_in_serializer.data, 200)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def checkUpdatedTime(request):
+    if request.method == 'GET':
+        username = request.query_params.get("username")
+        try:
+            uploader = User.objects.get(username=username)
+            uploader_profile = Profile.objects.get(user=uploader)
+        except Profile.DoesNotExist:
+            return Response({"updated": False}, 400)
+        
+        print("checkUpdatedTime", uploader_profile.fetched_time, uploader_profile.updated_time)
+        if uploader_profile.fetched_time < uploader_profile.updated_time:
+            return Response({"updated": True}, 200)
+        else:
+            return Response({"updated": False}, 200)

@@ -1,4 +1,3 @@
-from io import open_code
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -6,6 +5,8 @@ from django.contrib.auth.models import User
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    updated_time = models.DateTimeField()
+    fetched_time = models.DateTimeField() # fetched by self
 
 class Post(models.Model):
     uploader = models.ForeignKey(Profile, on_delete=models.CASCADE)

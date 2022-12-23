@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import *
-from datetime import datetime
-from django.contrib.auth import authenticate, get_user_model
+from django.utils import timezone
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import update_last_login
 from drf_extra_fields.fields import Base64ImageField
 
@@ -38,7 +38,9 @@ class UploadPostSerializer(serializers.Serializer):
     def create(self, validated_data):
         uploader = User.objects.get(username=validated_data["username"])
         uploader_profile = Profile.objects.get(user=uploader)
-        Post.objects.create(uploader=uploader_profile, artist=validated_data["artist"], photo=validated_data["photo"], datetime=datetime(year=validated_data["captured_year"], month=validated_data["captured_month"], day=validated_data["captured_day"], hour=validated_data["captured_hour"], minute=validated_data["captured_minute"], second=validated_data["captured_second"]), caption=validated_data["caption"])
+        uploader_profile.updated_time = timezone.now()
+        uploader_profile.save()
+        Post.objects.create(uploader=uploader_profile, artist=validated_data["artist"], photo=validated_data["photo"], datetime=timezone.datetime(year=validated_data["captured_year"], month=validated_data["captured_month"], day=validated_data["captured_day"], hour=validated_data["captured_hour"], minute=validated_data["captured_minute"], second=validated_data["captured_second"]), caption=validated_data["caption"])
 
         return validated_data
 
@@ -50,6 +52,8 @@ class SignUpSerializer(serializers.Serializer):
         new_user = User.objects.create(username=validated_data['username'])
         new_user.set_password(validated_data['password'])
         new_user.save()
+
+        Profile.objects.create(user=new_user, updated_time=timezone.now(), fetched_time=timezone.now())
 
         return validated_data
 
