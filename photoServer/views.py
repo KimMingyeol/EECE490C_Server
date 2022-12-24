@@ -50,7 +50,7 @@ def uploadPost(request):
         return Response(upload_post_serializer.data, 201)
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def deletePost(request):
     if request.method == 'POST':
         post_id = request.data
